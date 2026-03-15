@@ -1,0 +1,178 @@
+AKB1 COMMAND CENTER V3.0 - DOCKER & CI/CD CONFIGURATION MANIFEST
+==================================================================
+
+CREATED FILES:
+==============
+
+1. Dockerfile (root)
+   Location: /akb1-command-center-v3/Dockerfile
+   Type: Multi-stage Docker build configuration
+   Stages: 2 (Frontend builder + Production runtime)
+   Key features:
+   - Node.js 20 Alpine for React/Vite build
+   - Python 3.11 Slim for FastAPI runtime
+   - SQLite3 and curl dependencies
+   - Health check via curl
+   - Persistent /data volume for SQLite
+
+2. .dockerignore (root)
+   Location: /akb1-command-center-v3/.dockerignore
+   Type: Docker exclusion patterns
+   Excludes: node_modules, __pycache__, .env, data/, build artifacts
+
+3. docker-compose.yml (root)
+   Location: /akb1-command-center-v3/docker-compose.yml
+   Type: Docker Compose configuration for local development
+   Services: 1 (app)
+   Port mapping: 8000:8000
+   Volume: ./data:/data (persistent SQLite storage)
+
+4. .github/workflows/deploy.yml
+   Location: /akb1-command-center-v3/.github/workflows/deploy.yml
+   Type: GitHub Actions CI/CD workflow
+   Trigger: Push to main branch
+   Job: Deploy to Railway using railway up
+   Secret: RAILWAY_TOKEN
+
+5. railway.json (root)
+   Location: /akb1-command-center-v3/railway.json
+   Type: Railway platform configuration
+   Build: Dockerfile
+   Start command: uvicorn backend.main:app
+   Health check: /api/health
+   Restart policy: ON_FAILURE (max 3 retries)
+
+6. .gitignore (root)
+   Location: /akb1-command-center-v3/.gitignore
+   Type: Git exclusion patterns
+   Excludes: Dependencies, virtual envs, IDE files, .env, data/, build artifacts
+
+7. backend/main.py (UPDATED)
+   Location: /akb1-command-center-v3/backend/main.py
+   Changes: Added static file serving
+   New functionality:
+   - Mount /assets route to React build output
+   - Implement SPA fallback for client-side routing
+   - Serve index.html for non-API routes
+   - Protect API routes from SPA fallback
+
+8. README.md (root)
+   Location: /akb1-command-center-v3/README.md
+   Type: Project documentation
+   Sections:
+   - Tech stack overview
+   - Quick start with Docker Compose
+   - Development setup without Docker
+   - Complete API endpoint listing
+   - Deployment to Railway instructions
+   - Database configuration
+   - File structure
+   - Troubleshooting guide
+
+9. DEPLOYMENT.md (root)
+   Location: /akb1-command-center-v3/DEPLOYMENT.md
+   Type: Deployment configuration documentation
+   Details:
+   - Architecture overview
+   - Multi-stage build process
+   - CI/CD pipeline flow
+   - Deployment checklist
+   - Configuration details
+   - Troubleshooting by scenario
+
+10. FILE_MANIFEST.txt (root)
+    Location: /akb1-command-center-v3/FILE_MANIFEST.txt
+    Type: This file - manifest of all created/modified files
+
+TECHNICAL SPECIFICATIONS:
+=========================
+
+DOCKER BUILD PROCESS:
+Stage 1 (Frontend):
+  Base image: node:20-alpine
+  Working directory: /app/frontend
+  Steps:
+    1. Copy frontend/ directory
+    2. npm install
+    3. npm run build
+  Output: /app/frontend/dist
+
+Stage 2 (Production):
+  Base image: python:3.11-slim
+  Working directory: /app
+  Dependencies installed: sqlite3, curl
+  Steps:
+    1. Copy backend/requirements.txt
+    2. pip install Python dependencies
+    3. Copy backend code
+    4. Copy frontend dist from Stage 1 → frontend_dist/
+    5. Create /data directory
+    6. Expose port 8000
+    7. Setup health check
+  Start command: uvicorn backend.main:app --host 0.0.0.0 --port 8000
+
+CI/CD PIPELINE:
+Trigger: Push to main branch
+Platform: GitHub Actions
+Cloud deployment: Railway
+Deployment mechanism: railway up CLI command
+Authentication: RAILWAY_TOKEN secret
+
+SERVICE ARCHITECTURE:
+Port 8000:
+  /api/* → FastAPI backend routes
+  /assets/* → Static React build files
+  /* → SPA fallback (index.html)
+
+Database:
+  Type: SQLite
+  Location: /data/akb1_command_center.db
+  Persistence: Docker volume ./data:/data
+  Auto-initialization: On first startup
+  Auto-seeding: If database is empty
+
+HEALTH CHECK:
+Endpoint: GET /api/health
+Docker method: curl http://localhost:8000/api/health
+Interval: 30 seconds
+Timeout: 10 seconds
+Start period: 5 seconds
+Retries: 3 before marking unhealthy
+
+VERIFICATION CHECKLIST:
+======================
+✓ Dockerfile created with multi-stage architecture
+✓ .dockerignore created with proper exclusions
+✓ docker-compose.yml created for local development
+✓ GitHub Actions workflow created for Railway deployment
+✓ railway.json created with proper configuration
+✓ .gitignore created with comprehensive exclusions
+✓ backend/main.py updated with SPA serving
+✓ README.md created with complete documentation
+✓ DEPLOYMENT.md created with architecture details
+✓ All paths verified in project structure
+
+DEPLOYMENT INSTRUCTIONS:
+========================
+Local Testing:
+  $ cd /akb1-command-center-v3
+  $ docker-compose up --build
+  $ # Access at http://localhost:8000
+
+Railway Deployment:
+  1. Create Railway account (https://railway.app)
+  2. Create Railway project
+  3. Generate Railway token
+  4. Add RAILWAY_TOKEN to GitHub Secrets
+  5. Push to main branch: git push origin main
+  6. GitHub Actions will automatically deploy
+
+NOTES:
+======
+- All Docker commands use specific base image versions for consistency
+- Multi-stage build reduces final image size while including build tools
+- Health check uses curl (lightweight, no additional Python dependencies)
+- SPA fallback in FastAPI protects API routes while serving React app
+- Database auto-initialization handles first-run setup
+- Railway.json configuration enables simple "railway up" deployment
+

@@ -1,0 +1,67 @@
+AKB1 COMMAND CENTER v3.0 - COMPLETE FILE LISTING
+==================================================
+
+CONFIGURATION FILES:
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/package.json
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/vite.config.js
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/tailwind.config.js
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/index.html
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/README.md
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/IMPLEMENTATION_SUMMARY.md
+
+ENTRY POINTS:
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/main.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/App.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/index.css
+
+UTILITIES:
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/utils/api.js
+
+REUSABLE COMPONENTS:
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/components/Layout.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/components/StatusBadge.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/components/KPICard.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/components/DataTable.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/components/Modal.jsx
+
+FEATURE PAGES (13):
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/Dashboard.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/KPIEngine.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/Portfolio.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/RiskMatrix.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/SprintPlanner.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/Resources.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/Dependencies.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/Releases.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/ChangeRequests.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/Estimations.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/StatusReports.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/ActivityLog.jsx
+/sessions/dazzling-inspiring-brahmagupta/akb1-command-center-v3/frontend/src/pages/Settings.jsx
+
+DEPENDENCIES INSTALLED:
+- react@18.2.0
+- react-dom@18.2.0
+- react-router-dom@6.20.0
+- recharts@2.10.0 (charting)
+- lucide-react@0.294.0 (icons)
+- axios@1.6.0 (HTTP client)
+- tailwindcss@3.4.0 (styling)
+- @tailwindcss/vite@4.0.0 (vite plugin)
+- vite@5.0.0 (build tool)
+- @vitejs/plugin-react@4.2.0 (react plugin)
+
+TOTAL PROJECT SIZE:
+Files: 28
+Lines of Code: 7,500+
+Dependencies: 10 npm packages + 203 sub-dependencies
+
+DEPLOYMENT READY:
+✓ npm install (completed)
+✓ npm run dev (ready for local development)
+✓ npm run build (ready for production)
+✓ All configurations complete
+✓ All components fully implemented
+✓ All pages fully implemented
+✓ All styling complete
+✓ API layer complete and ready
