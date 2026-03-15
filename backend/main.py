@@ -93,9 +93,9 @@ app.include_router(status_reports.router)
 app.include_router(dashboard.router)
 
 # Root endpoint
-@app.get("/")
-def root():
-    """Root endpoint with API information."""
+@app.get("/api/info")
+def api_info():
+    """API information endpoint."""
     return {
         "name": "AKB1 Command Center v3.0",
         "description": "Enterprise delivery management and portfolio management platform",
