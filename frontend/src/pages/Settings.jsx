@@ -273,7 +273,7 @@ const Settings = () => {
             customKpis.map((kpi) => (
               <div
                 key={kpi.id}
-                className="flex items-center justify-between p-3 bg-gray-800 rounded border border-gray-700"
+                className="bloomberg-card flex items-center justify-between p-3 rounded"
               >
                 <div>
                   <div className="font-bold">{kpi.name}</div>

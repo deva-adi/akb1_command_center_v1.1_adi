@@ -422,3 +422,191 @@ code, pre {
   background-color: var(--bg-tertiary);
   border-color: var(--accent-green);
 }
+
+/* ============================================= */
+/* LIGHT THEME: Override hardcoded Tailwind classes */
+/* ============================================= */
+
+/* Text colors */
+[data-theme="light"] .text-white {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .text-gray-400 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .text-gray-300 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .hover\:text-white:hover {
+  color: var(--text-primary) !important;
+}
+
+/* Background colors */
+[data-theme="light"] .bg-gray-700 {
+  background-color: var(--bg-tertiary) !important;
+}
+
+[data-theme="light"] .bg-gray-800 {
+  background-color: var(--bg-tertiary) !important;
+}
+
+[data-theme="light"] .bg-gray-900 {
+  background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="light"] .bg-gray-600 {
+  background-color: #d0d0d0 !important;
+}
+
+[data-theme="light"] .hover\:bg-gray-600:hover {
+  background-color: #d0d0d0 !important;
+}
+
+[data-theme="light"] .hover\:bg-gray-700:hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
+/* Border colors */
+[data-theme="light"] .border-gray-600 {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="light"] .border-gray-700 {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="light"] .border-gray-800 {
+  border-color: var(--border-color) !important;
+}
+
+/* Button overrides for light mode */
+[data-theme="light"] .bg-blue-600 {
+  background-color: #2563eb !important;
+}
+
+[data-theme="light"] .bg-red-600 {
+  background-color: #dc2626 !important;
+}
+
+/* Recharts light theme */
+[data-theme="light"] .recharts-cartesian-grid line {
+  stroke: #d0d0d0 !important;
+}
+
+[data-theme="light"] .recharts-text {
+  fill: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Card stat values visibility in light mode */
+[data-theme="light"] .stat-value {
+  color: var(--text-primary);
+}
+
+/* Ensure page titles are visible in light mode */
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3 {
+  color: var(--text-primary);
+}
+
+/* Keep accent-colored headings as accent */
+[data-theme="light"] h1.text-akb-green,
+[data-theme="light"] h3.text-akb-green {
+  color: var(--accent-green) !important;
+}
+
+/* Header bar light mode adjustments */
+[data-theme="light"] .bloomberg-header {
+  background: linear-gradient(to bottom, #ffffff, #f8f8f8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .bloomberg-header span,
+[data-theme="light"] .bloomberg-header div {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .bloomberg-header .text-akb-green {
+  color: var(--accent-green) !important;
+}
+
+[data-theme="light"] .bloomberg-header .text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* Sidebar light mode */
+[data-theme="light"] .sidebar-nav {
+  background-color: #ffffff;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Progress bars light mode */
+[data-theme="light"] .bg-gray-700.rounded,
+[data-theme="light"] .h-2.bg-gray-700,
+[data-theme="light"] .h-1.bg-gray-700,
+[data-theme="light"] .h-2.bg-gray-800 {
+  background-color: #e0e0e0 !important;
+}
+
+/* Modal content light mode */
+[data-theme="light"] .modal-content {
+  border-color: var(--accent-green);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* Table header light mode */
+[data-theme="light"] .data-table thead {
+  background-color: #f0f0f0;
+}
+
+/* Executive metrics cards - ensure visibility */
+[data-theme="light"] .executive-metric-card {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Light mode text for stat cards */
+[data-theme="light"] .bloomberg-card .text-xs.uppercase {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .bloomberg-card .text-2xl {
+  color: var(--text-primary);
+}
+
+/* Ensure form elements are visible */
+[data-theme="light"] select,
+[data-theme="light"] input,
+[data-theme="light"] textarea {
+  color: var(--text-primary);
+  background-color: var(--input-bg);
+  border-color: var(--border-color);
+}
+
+/* Toggle switches in light mode */
+[data-theme="light"] .peer-checked\:bg-akb-green:checked {
+  background-color: var(--accent-green);
+}
+
+/* Risk matrix cells */
+[data-theme="light"] .risk-cell {
+  border-color: var(--border-color);
+}
+
+/* Nav group titles */
+[data-theme="light"] .text-muted {
+  color: var(--text-muted) !important;
+}

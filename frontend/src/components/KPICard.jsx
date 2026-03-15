@@ -78,7 +78,7 @@ const KPICard = ({
       </div>
 
       {trend !== undefined && (
-        <div className="flex items-center gap-1 pt-2 border-t border-gray-600">
+        <div className="flex items-center gap-1 pt-2" style={{ borderTop: '1px solid var(--border-color)' }}>
           <TrendIcon size={14} style={{ color: trendColor }} />
           <span className="text-xs font-bold" style={{ color: trendColor }}>
             {trend > 0 ? '+' : ''}{trend.toFixed(1)}%

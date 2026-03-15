@@ -90,7 +90,7 @@ const Layout = ({ children }) => {
   const isActive = (path) => location.pathname === path
 
   return (
-    <div className="flex h-screen bg-bloomberg-bg text-white">
+    <div className="flex h-screen bg-bloomberg-bg" style={{ color: 'var(--text-primary)' }}>
       {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-40 sidebar-nav transition-transform duration-300 ${

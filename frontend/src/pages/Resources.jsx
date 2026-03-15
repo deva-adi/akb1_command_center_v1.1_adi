@@ -231,7 +231,7 @@ const Resources = () => {
             >
               <div className="font-bold text-sm">{resource.name}</div>
               <div className="text-xs text-muted mb-2">{resource.team}</div>
-              <div className="h-2 bg-gray-800 rounded overflow-hidden">
+              <div className="h-2 rounded overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                 <div
                   className="h-full"
                   style={{

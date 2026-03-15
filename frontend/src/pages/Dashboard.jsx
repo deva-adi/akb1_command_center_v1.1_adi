@@ -190,14 +190,14 @@ const Dashboard = () => {
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={projectHealth}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-              <XAxis dataKey="status" stroke="#666" />
-              <YAxis stroke="#666" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+              <XAxis dataKey="status" stroke="var(--text-muted)" />
+              <YAxis stroke="var(--text-muted)" />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#1a1a1a',
-                  border: '1px solid #2a2a2a',
-                  color: '#e0e0e0',
+                  backgroundColor: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-primary)',
                 }}
               />
               <Bar dataKey="count">
@@ -221,7 +221,7 @@ const Dashboard = () => {
                   {risk.severity}
                 </span>
                 <div className="flex items-center gap-3 flex-1 ml-4">
-                  <div className="h-2 flex-1 bg-gray-700 rounded">
+                  <div className="h-2 flex-1 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                     <div
                       className="h-full rounded"
                       style={{
@@ -256,9 +256,9 @@ const Dashboard = () => {
             return (
               <div
                 key={index}
-                className="p-4 rounded-lg border border-gray-700 bg-gray-900"
+                className="bloomberg-card p-4 rounded-lg"
               >
-                <div className="text-xs uppercase tracking-widest text-gray-400 mb-2">
+                <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
                   {metric.label}
                 </div>
                 <div className="flex items-baseline gap-2">
@@ -268,9 +268,9 @@ const Dashboard = () => {
                   >
                     {metric.value}
                   </span>
-                  <span className="text-sm text-gray-400">{metric.unit}</span>
+                  <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{metric.unit}</span>
                 </div>
-                <div className="mt-2 h-1 w-full bg-gray-700 rounded">
+                <div className="mt-2 h-1 w-full rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                   <div
                     className="h-full rounded"
                     style={{

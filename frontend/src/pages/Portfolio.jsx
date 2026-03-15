@@ -235,7 +235,7 @@ const Portfolio = () => {
           >
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-white mb-2">{project.name}</h3>
+                <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{project.name}</h3>
                 <StatusBadge status={project.status} />
               </div>
               <div className="flex gap-1">
@@ -258,12 +258,12 @@ const Portfolio = () => {
               {project.description}
             </div>
 
-            <div className="space-y-2 mb-4 pb-4 border-b border-gray-700">
+            <div className="space-y-2 mb-4 pb-4" style={{ borderBottom: '1px solid var(--border-color)' }}>
               <div className="flex justify-between text-xs">
                 <span className="text-muted">Health Score</span>
-                <span className="text-white font-bold">{project.health_score}%</span>
+                <span className="font-bold" style={{ color: 'var(--text-primary)' }}>{project.health_score}%</span>
               </div>
-              <div className="h-2 bg-gray-800 rounded overflow-hidden">
+              <div className="h-2 rounded overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                 <div
                   className="h-full"
                   style={{
@@ -282,7 +282,7 @@ const Portfolio = () => {
             <div className="space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-muted">Manager</span>
-                <span className="text-white">{project.manager || '-'}</span>
+                <span style={{ color: 'var(--text-primary)' }}>{project.manager || '-'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted">Budget</span>

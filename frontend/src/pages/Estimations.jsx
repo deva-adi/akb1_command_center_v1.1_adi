@@ -307,7 +307,7 @@ const Estimations = () => {
           </div>
 
           {formData.method === 'PERT' && (
-            <div className="bg-gray-800 p-4 rounded border border-gray-700">
+            <div className="bloomberg-card p-4 rounded">
               <div className="text-sm font-bold text-akb-green mb-3">
                 PERT Calculator: (O + 4M + P) / 6
               </div>
@@ -356,7 +356,7 @@ const Estimations = () => {
                 </div>
               </div>
               {formData.estimate_result && (
-                <div className="text-center p-3 bg-gray-700 rounded">
+                <div className="text-center p-3 rounded" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                   <div className="text-xs text-muted">Calculated Estimate</div>
                   <div className="text-2xl font-bold text-akb-green">
                     {formData.estimate_result}
