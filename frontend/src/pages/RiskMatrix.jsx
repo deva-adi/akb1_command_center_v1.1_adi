@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import DataTable from '../components/DataTable'
 import Modal from '../components/Modal'
 import StatusBadge from '../components/StatusBadge'
+import ProjectSelector from '../components/ProjectSelector'
 import { risksAPI } from '../utils/api'
 
 const RiskMatrix = () => {
@@ -16,9 +17,11 @@ const RiskMatrix = () => {
     description: '',
     probability: '3',
     impact: '3',
-    status: 'ACTIVE',
-    mitigation_plan: '',
+    status: 'OPEN',
+    mitigation: '',
     owner: '',
+    category: '',
+    project_id: null,
   })
 
   useEffect(() => {
@@ -48,8 +51,10 @@ const RiskMatrix = () => {
         probability: risk.probability,
         impact: risk.impact,
         status: risk.status,
-        mitigation_plan: risk.mitigation_plan,
+        mitigation: risk.mitigation,
         owner: risk.owner,
+        category: risk.category || '',
+        project_id: risk.project_id,
       })
     } else {
       setEditingRisk(null)
@@ -58,9 +63,11 @@ const RiskMatrix = () => {
         description: '',
         probability: '3',
         impact: '3',
-        status: 'ACTIVE',
-        mitigation_plan: '',
+        status: 'OPEN',
+        mitigation: '',
         owner: '',
+        category: '',
+        project_id: null,
       })
     }
     setShowModal(true)
@@ -84,13 +91,23 @@ const RiskMatrix = () => {
       setError('Risk title is required')
       return
     }
+    if (!formData.project_id) {
+      setError('Project is required')
+      return
+    }
 
     try {
       setModalLoading(true)
+      const submitData = {
+        ...formData,
+        probability: parseInt(formData.probability, 10),
+        impact: parseInt(formData.impact, 10),
+        project_id: parseInt(formData.project_id, 10),
+      }
       if (editingRisk) {
-        await risksAPI.update(editingRisk.id, formData)
+        await risksAPI.update(editingRisk.id, submitData)
       } else {
-        await risksAPI.create(formData)
+        await risksAPI.create(submitData)
       }
       await fetchRisks()
       handleCloseModal()
@@ -317,19 +334,27 @@ const RiskMatrix = () => {
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-bold mb-2">Project *</label>
+            <ProjectSelector
+              value={formData.project_id}
+              onChange={(projectId) =>
+                setFormData((prev) => ({ ...prev, project_id: projectId }))
+              }
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold mb-2">Status</label>
-              <select
-                name="status"
-                value={formData.status}
+              <label className="block text-sm font-bold mb-2">Category</label>
+              <input
+                type="text"
+                name="category"
+                value={formData.category}
                 onChange={handleInputChange}
-                className="form-select w-full"
-              >
-                <option value="ACTIVE">Active</option>
-                <option value="MITIGATED">Mitigated</option>
-                <option value="RESOLVED">Resolved</option>
-              </select>
+                className="form-input w-full"
+                placeholder="e.g., Technical, Resource, Schedule"
+              />
             </div>
             <div>
               <label className="block text-sm font-bold mb-2">Owner</label>
@@ -344,13 +369,28 @@ const RiskMatrix = () => {
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold mb-2">Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                className="form-select w-full"
+              >
+                <option value="OPEN">Open</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="RESOLVED">Resolved</option>
+                <option value="BLOCKED">Blocked</option>
+              </select>
+            </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-bold mb-2">
-              Mitigation Plan
-            </label>
+            <label className="block text-sm font-bold mb-2">Mitigation</label>
             <textarea
-              name="mitigation_plan"
-              value={formData.mitigation_plan}
+              name="mitigation"
+              value={formData.mitigation}
               onChange={handleInputChange}
               className="form-textarea w-full"
               rows="3"

@@ -32,7 +32,8 @@ api.interceptors.response.use(
 )
 
 export const dashboardAPI = {
-  getSummary: () => api.get('/dashboard/summary'),
+  getSummary: () => api.get('/dashboard/data'),
+  getMetrics: () => api.get('/dashboard/metrics'),
 }
 
 export const kpisAPI = {

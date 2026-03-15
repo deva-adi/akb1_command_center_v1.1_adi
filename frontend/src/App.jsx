@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
+import { ThemeProvider } from './contexts/ThemeContext'
 
 import Dashboard from './pages/Dashboard'
 import KPIEngine from './pages/KPIEngine'
@@ -18,25 +19,27 @@ import Settings from './pages/Settings'
 
 function App() {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/kpis" element={<KPIEngine />} />
-          <Route path="/portfolio" element={<Portfolio />} />
-          <Route path="/risks" element={<RiskMatrix />} />
-          <Route path="/sprints" element={<SprintPlanner />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/dependencies" element={<Dependencies />} />
-          <Route path="/releases" element={<Releases />} />
-          <Route path="/change-requests" element={<ChangeRequests />} />
-          <Route path="/estimations" element={<Estimations />} />
-          <Route path="/status-reports" element={<StatusReports />} />
-          <Route path="/activity-log" element={<ActivityLog />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/kpis" element={<KPIEngine />} />
+            <Route path="/portfolio" element={<Portfolio />} />
+            <Route path="/risks" element={<RiskMatrix />} />
+            <Route path="/sprints" element={<SprintPlanner />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/dependencies" element={<Dependencies />} />
+            <Route path="/releases" element={<Releases />} />
+            <Route path="/change-requests" element={<ChangeRequests />} />
+            <Route path="/estimations" element={<Estimations />} />
+            <Route path="/status-reports" element={<StatusReports />} />
+            <Route path="/activity-log" element={<ActivityLog />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </ThemeProvider>
   )
 }
 

@@ -16,12 +16,16 @@ import {
   ActivitySquare,
   Settings,
   Eye,
+  Sun,
+  Moon,
 } from 'lucide-react'
+import { useTheme } from '../contexts/ThemeContext'
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [currentTime, setCurrentTime] = useState(new Date())
   const location = useLocation()
+  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
@@ -157,6 +161,9 @@ const Layout = ({ children }) => {
           </div>
 
           <div className="flex items-center gap-6">
+            <button onClick={toggleTheme} className="theme-toggle-btn" title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
             <div className="text-right">
               <div className="text-xs text-muted">SYSTEM TIME</div>
               <div className="text-sm font-mono font-bold text-akb-green">

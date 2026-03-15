@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
+import ProjectSelector from '../components/ProjectSelector'
 import { estimationsAPI } from '../utils/api'
 
 const Estimations = () => {
@@ -12,14 +13,14 @@ const Estimations = () => {
   const [modalLoading, setModalLoading] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
+    notes: '',
     method: 'PERT',
     optimistic: '',
     most_likely: '',
     pessimistic: '',
-    estimated_value: '',
+    estimate_result: '',
     confidence: '',
-    owner: '',
+    project_id: '',
   })
 
   useEffect(() => {
@@ -50,27 +51,27 @@ const Estimations = () => {
       setEditingEstimation(estimation)
       setFormData({
         title: estimation.title,
-        description: estimation.description,
+        notes: estimation.notes,
         method: estimation.method,
         optimistic: estimation.optimistic,
         most_likely: estimation.most_likely,
         pessimistic: estimation.pessimistic,
-        estimated_value: estimation.estimated_value,
+        estimate_result: estimation.estimate_result,
         confidence: estimation.confidence,
-        owner: estimation.owner,
+        project_id: estimation.project_id,
       })
     } else {
       setEditingEstimation(null)
       setFormData({
         title: '',
-        description: '',
+        notes: '',
         method: 'PERT',
         optimistic: '',
         most_likely: '',
         pessimistic: '',
-        estimated_value: '',
+        estimate_result: '',
         confidence: '',
-        owner: '',
+        project_id: '',
       })
     }
     setShowModal(true)
@@ -92,7 +93,7 @@ const Estimations = () => {
       formData.method === 'PERT' &&
       ['optimistic', 'most_likely', 'pessimistic'].includes(name)
     ) {
-      newFormData.estimated_value = calculatePERT(
+      newFormData.estimate_result = calculatePERT(
         newFormData.optimistic,
         newFormData.most_likely,
         newFormData.pessimistic
@@ -102,18 +103,39 @@ const Estimations = () => {
     setFormData(newFormData)
   }
 
+  const handleProjectChange = (projectId) => {
+    setFormData({
+      ...formData,
+      project_id: projectId,
+    })
+  }
+
   const handleSubmit = async () => {
     if (!formData.title) {
       setError('Estimation title is required')
       return
     }
 
+    if (!formData.project_id) {
+      setError('Project is required')
+      return
+    }
+
     try {
       setModalLoading(true)
+      const submitData = {
+        ...formData,
+        project_id: parseInt(formData.project_id),
+        optimistic: parseFloat(formData.optimistic) || 0,
+        most_likely: parseFloat(formData.most_likely) || 0,
+        pessimistic: parseFloat(formData.pessimistic) || 0,
+        estimate_result: parseFloat(formData.estimate_result) || 0,
+        confidence: parseFloat(formData.confidence) || 0,
+      }
       if (editingEstimation) {
-        await estimationsAPI.update(editingEstimation.id, formData)
+        await estimationsAPI.update(editingEstimation.id, submitData)
       } else {
-        await estimationsAPI.create(formData)
+        await estimationsAPI.create(submitData)
       }
       await fetchEstimations()
       handleCloseModal()
@@ -141,7 +163,7 @@ const Estimations = () => {
     { key: 'title', label: 'Title' },
     { key: 'method', label: 'Method' },
     {
-      key: 'estimated_value',
+      key: 'estimate_result',
       label: 'Estimate',
       render: (val) => val ? val.toFixed(2) : '-',
     },
@@ -150,7 +172,6 @@ const Estimations = () => {
       label: 'Confidence',
       render: (val) => val ? `${val}%` : '-',
     },
-    { key: 'owner', label: 'Owner' },
   ]
 
   if (loading) {
@@ -163,7 +184,7 @@ const Estimations = () => {
 
   const avgEstimate =
     estimations.length > 0
-      ? (estimations.reduce((sum, e) => sum + (e.estimated_value || 0), 0) /
+      ? (estimations.reduce((sum, e) => sum + (e.estimate_result || 0), 0) /
           estimations.length).toFixed(2)
       : 0
   const highConfidence = estimations.filter((e) => (e.confidence || 0) >= 80).length
@@ -250,10 +271,18 @@ const Estimations = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-bold mb-2">Description</label>
+            <label className="block text-sm font-bold mb-2">Project *</label>
+            <ProjectSelector
+              value={formData.project_id}
+              onChange={handleProjectChange}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold mb-2">Notes</label>
             <textarea
-              name="description"
-              value={formData.description}
+              name="notes"
+              value={formData.notes}
               onChange={handleInputChange}
               className="form-textarea w-full"
               rows="2"
@@ -261,35 +290,20 @@ const Estimations = () => {
             ></textarea>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-bold mb-2">
-                Estimation Method
-              </label>
-              <select
-                name="method"
-                value={formData.method}
-                onChange={handleInputChange}
-                className="form-select w-full"
-              >
-                <option value="PERT">PERT</option>
-                <option value="PLANNING_POKER">Planning Poker</option>
-                <option value="THREE_POINT">Three-Point</option>
-                <option value="ANALOGOUS">Analogous</option>
-                <option value="PARAMETRIC">Parametric</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-bold mb-2">Owner</label>
-              <input
-                type="text"
-                name="owner"
-                value={formData.owner}
-                onChange={handleInputChange}
-                className="form-input w-full"
-                placeholder="Estimator name"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-bold mb-2">
+              Estimation Method
+            </label>
+            <select
+              name="method"
+              value={formData.method}
+              onChange={handleInputChange}
+              className="form-select w-full"
+            >
+              <option value="PERT">PERT</option>
+              <option value="TSHIRT">T-Shirt Sizing</option>
+              <option value="STORY_POINTS">Story Points</option>
+            </select>
           </div>
 
           {formData.method === 'PERT' && (
@@ -341,11 +355,11 @@ const Estimations = () => {
                   />
                 </div>
               </div>
-              {formData.estimated_value && (
+              {formData.estimate_result && (
                 <div className="text-center p-3 bg-gray-700 rounded">
                   <div className="text-xs text-muted">Calculated Estimate</div>
                   <div className="text-2xl font-bold text-akb-green">
-                    {formData.estimated_value}
+                    {formData.estimate_result}
                   </div>
                 </div>
               )}
@@ -355,12 +369,12 @@ const Estimations = () => {
           {formData.method !== 'PERT' && (
             <div>
               <label className="block text-sm font-bold mb-2">
-                Estimated Value
+                Estimate Result
               </label>
               <input
                 type="number"
-                name="estimated_value"
-                value={formData.estimated_value}
+                name="estimate_result"
+                value={formData.estimate_result}
                 onChange={handleInputChange}
                 className="form-input w-full"
                 placeholder="0"

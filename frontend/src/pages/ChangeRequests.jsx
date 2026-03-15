@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
 import StatusBadge from '../components/StatusBadge'
+import ProjectSelector from '../components/ProjectSelector'
 import { changeRequestsAPI } from '../utils/api'
 
 const ChangeRequests = () => {
@@ -16,11 +17,10 @@ const ChangeRequests = () => {
     title: '',
     description: '',
     priority: 'MEDIUM',
-    status: 'DRAFT',
-    impact_area: '',
-    requested_by: '',
-    approval_date: '',
-    implementation_date: '',
+    status: 'SUBMITTED',
+    requester: '',
+    impact_analysis: '',
+    project_id: null,
   })
 
   useEffect(() => {
@@ -49,10 +49,9 @@ const ChangeRequests = () => {
         description: cr.description,
         priority: cr.priority,
         status: cr.status,
-        impact_area: cr.impact_area,
-        requested_by: cr.requested_by,
-        approval_date: cr.approval_date,
-        implementation_date: cr.implementation_date,
+        requester: cr.requester,
+        impact_analysis: cr.impact_analysis,
+        project_id: cr.project_id,
       })
     } else {
       setEditingCR(null)
@@ -60,11 +59,10 @@ const ChangeRequests = () => {
         title: '',
         description: '',
         priority: 'MEDIUM',
-        status: 'DRAFT',
-        impact_area: '',
-        requested_by: '',
-        approval_date: '',
-        implementation_date: '',
+        status: 'SUBMITTED',
+        requester: '',
+        impact_analysis: '',
+        project_id: null,
       })
     }
     setShowModal(true)
@@ -84,17 +82,21 @@ const ChangeRequests = () => {
   }
 
   const handleSubmit = async () => {
-    if (!formData.title) {
-      setError('Change request title is required')
+    if (!formData.title || !formData.requester || !formData.project_id) {
+      setError('Title, requester, and project are required')
       return
     }
 
     try {
       setModalLoading(true)
+      const submitData = {
+        ...formData,
+        project_id: parseInt(formData.project_id),
+      }
       if (editingCR) {
-        await changeRequestsAPI.update(editingCR.id, formData)
+        await changeRequestsAPI.update(editingCR.id, submitData)
       } else {
-        await changeRequestsAPI.create(formData)
+        await changeRequestsAPI.create(submitData)
       }
       await fetchChangeRequests()
       handleCloseModal()
@@ -135,9 +137,8 @@ const ChangeRequests = () => {
       label: 'Status',
       render: (val) => <StatusBadge status={val} />,
     },
-    { key: 'impact_area', label: 'Impact Area' },
-    { key: 'requested_by', label: 'Requested By' },
-    { key: 'approval_date', label: 'Approval Date' },
+    { key: 'impact_analysis', label: 'Impact Analysis' },
+    { key: 'requester', label: 'Requester' },
   ]
 
   if (loading) {
@@ -156,8 +157,8 @@ const ChangeRequests = () => {
   }
 
   const statusCounts = {
-    DRAFT: changeRequests.filter((cr) => cr.status === 'DRAFT').length,
     SUBMITTED: changeRequests.filter((cr) => cr.status === 'SUBMITTED').length,
+    UNDER_REVIEW: changeRequests.filter((cr) => cr.status === 'UNDER_REVIEW').length,
     APPROVED: changeRequests.filter((cr) => cr.status === 'APPROVED').length,
     IMPLEMENTED: changeRequests.filter((cr) => cr.status === 'IMPLEMENTED').length,
     REJECTED: changeRequests.filter((cr) => cr.status === 'REJECTED').length,
@@ -189,9 +190,9 @@ const ChangeRequests = () => {
           </div>
         </div>
         <div className="bloomberg-card p-4">
-          <div className="text-xs text-muted mb-2">PENDING APPROVAL</div>
+          <div className="text-xs text-muted mb-2">UNDER REVIEW</div>
           <div className="text-2xl font-bold text-akb-amber">
-            {statusCounts.SUBMITTED}
+            {statusCounts.UNDER_REVIEW}
           </div>
         </div>
         <div className="bloomberg-card p-4">
@@ -308,8 +309,8 @@ const ChangeRequests = () => {
                 onChange={handleInputChange}
                 className="form-select w-full"
               >
-                <option value="DRAFT">Draft</option>
                 <option value="SUBMITTED">Submitted</option>
+                <option value="UNDER_REVIEW">Under Review</option>
                 <option value="APPROVED">Approved</option>
                 <option value="IMPLEMENTED">Implemented</option>
                 <option value="REJECTED">Rejected</option>
@@ -318,56 +319,43 @@ const ChangeRequests = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-bold mb-2">Impact Area</label>
-            <input
-              type="text"
-              name="impact_area"
-              value={formData.impact_area}
+            <label className="block text-sm font-bold mb-2">Impact Analysis</label>
+            <textarea
+              name="impact_analysis"
+              value={formData.impact_analysis}
               onChange={handleInputChange}
-              className="form-input w-full"
-              placeholder="e.g., API, Database, Frontend"
-            />
+              className="form-textarea w-full"
+              rows="2"
+              placeholder="Impact of the proposed change..."
+            ></textarea>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold mb-2">
-                Requested By
+                Requester *
               </label>
               <input
                 type="text"
-                name="requested_by"
-                value={formData.requested_by}
+                name="requester"
+                value={formData.requester}
                 onChange={handleInputChange}
                 className="form-input w-full"
                 placeholder="Requester name"
               />
             </div>
             <div>
-              <label className="block text-sm font-bold mb-2">
-                Approval Date
-              </label>
-              <input
-                type="date"
-                name="approval_date"
-                value={formData.approval_date}
-                onChange={handleInputChange}
-                className="form-input w-full"
+              <label className="block text-sm font-bold mb-2">Project *</label>
+              <ProjectSelector
+                value={formData.project_id}
+                onChange={(projectId) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    project_id: projectId,
+                  }))
+                }
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold mb-2">
-              Implementation Date
-            </label>
-            <input
-              type="date"
-              name="implementation_date"
-              value={formData.implementation_date}
-              onChange={handleInputChange}
-              className="form-input w-full"
-            />
           </div>
         </div>
       </Modal>

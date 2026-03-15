@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
+import ProjectSelector from '../components/ProjectSelector'
 import { resourcesAPI } from '../utils/api'
 
 const Resources = () => {
@@ -15,9 +16,11 @@ const Resources = () => {
     team: '',
     role: '',
     allocation_percent: '',
-    utilization_percent: '',
-    capacity_hours: '',
-    billable: false,
+    utilization: '',
+    billable_hours: '',
+    available_hours: '',
+    skills: '',
+    project_id: null,
   })
 
   useEffect(() => {
@@ -46,9 +49,11 @@ const Resources = () => {
         team: resource.team,
         role: resource.role,
         allocation_percent: resource.allocation_percent,
-        utilization_percent: resource.utilization_percent,
-        capacity_hours: resource.capacity_hours,
-        billable: resource.billable,
+        utilization: resource.utilization,
+        billable_hours: resource.billable_hours,
+        available_hours: resource.available_hours,
+        skills: resource.skills || '',
+        project_id: resource.project_id,
       })
     } else {
       setEditingResource(null)
@@ -57,9 +62,11 @@ const Resources = () => {
         team: '',
         role: '',
         allocation_percent: '',
-        utilization_percent: '',
-        capacity_hours: '',
-        billable: false,
+        utilization: '',
+        billable_hours: '',
+        available_hours: '',
+        skills: '',
+        project_id: null,
       })
     }
     setShowModal(true)
@@ -71,10 +78,10 @@ const Resources = () => {
   }
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target
+    const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: value,
     }))
   }
 
@@ -83,13 +90,25 @@ const Resources = () => {
       setError('Name and team are required')
       return
     }
+    if (!formData.project_id) {
+      setError('Project is required')
+      return
+    }
 
     try {
       setModalLoading(true)
+      const submitData = {
+        ...formData,
+        allocation_percent: parseFloat(formData.allocation_percent) || 0,
+        utilization: parseFloat(formData.utilization) || 0,
+        billable_hours: parseFloat(formData.billable_hours) || 0,
+        available_hours: parseFloat(formData.available_hours) || 0,
+        project_id: parseInt(formData.project_id, 10),
+      }
       if (editingResource) {
-        await resourcesAPI.update(editingResource.id, formData)
+        await resourcesAPI.update(editingResource.id, submitData)
       } else {
-        await resourcesAPI.create(formData)
+        await resourcesAPI.create(submitData)
       }
       await fetchResources()
       handleCloseModal()
@@ -125,7 +144,7 @@ const Resources = () => {
     { key: 'role', label: 'Role' },
     { key: 'allocation_percent', label: 'Allocation', render: (val) => `${val}%` },
     {
-      key: 'utilization_percent',
+      key: 'utilization',
       label: 'Utilization',
       render: (val) => (
         <span style={{ color: getUtilizationColor(val) }} className="font-bold">
@@ -133,12 +152,8 @@ const Resources = () => {
         </span>
       ),
     },
-    { key: 'capacity_hours', label: 'Capacity (hrs)' },
-    {
-      key: 'billable',
-      label: 'Billable',
-      render: (val) => (val ? 'Yes' : 'No'),
-    },
+    { key: 'billable_hours', label: 'Billable (hrs)' },
+    { key: 'available_hours', label: 'Available (hrs)' },
   ]
 
   if (loading) {
@@ -155,10 +170,10 @@ const Resources = () => {
   )
   const avgUtilization =
     resources.length > 0
-      ? (resources.reduce((sum, r) => sum + (r.utilization_percent || 0), 0) /
+      ? (resources.reduce((sum, r) => sum + (r.utilization || 0), 0) /
           resources.length).toFixed(1)
       : 0
-  const billableCount = resources.filter((r) => r.billable).length
+  const billableCount = resources.filter((r) => r.billable_hours > 0).length
 
   return (
     <div className="space-y-6">
@@ -210,8 +225,8 @@ const Resources = () => {
               key={resource.id}
               className="p-3 rounded border"
               style={{
-                borderColor: getUtilizationColor(resource.utilization_percent),
-                backgroundColor: `${getUtilizationColor(resource.utilization_percent)}20`,
+                borderColor: getUtilizationColor(resource.utilization),
+                backgroundColor: `${getUtilizationColor(resource.utilization)}20`,
               }}
             >
               <div className="font-bold text-sm">{resource.name}</div>
@@ -220,13 +235,13 @@ const Resources = () => {
                 <div
                   className="h-full"
                   style={{
-                    width: `${resource.utilization_percent}%`,
-                    backgroundColor: getUtilizationColor(resource.utilization_percent),
+                    width: `${resource.utilization}%`,
+                    backgroundColor: getUtilizationColor(resource.utilization),
                   }}
                 ></div>
               </div>
               <div className="text-xs font-bold mt-2">
-                {resource.utilization_percent}%
+                {resource.utilization}%
               </div>
             </div>
           ))}
@@ -257,6 +272,16 @@ const Resources = () => {
         loading={modalLoading}
       >
         <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold mb-2">Project *</label>
+            <ProjectSelector
+              value={formData.project_id}
+              onChange={(projectId) =>
+                setFormData((prev) => ({ ...prev, project_id: projectId }))
+              }
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold mb-2">Name *</label>
@@ -295,16 +320,14 @@ const Resources = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold mb-2">
-                Capacity (hrs/week)
-              </label>
+              <label className="block text-sm font-bold mb-2">Skills</label>
               <input
-                type="number"
-                name="capacity_hours"
-                value={formData.capacity_hours}
+                type="text"
+                name="skills"
+                value={formData.skills}
                 onChange={handleInputChange}
                 className="form-input w-full"
-                placeholder="40"
+                placeholder="Python, AWS, Docker"
               />
             </div>
           </div>
@@ -331,8 +354,8 @@ const Resources = () => {
               </label>
               <input
                 type="number"
-                name="utilization_percent"
-                value={formData.utilization_percent}
+                name="utilization"
+                value={formData.utilization}
                 onChange={handleInputChange}
                 className="form-input w-full"
                 min="0"
@@ -342,18 +365,35 @@ const Resources = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="billable"
-              id="billable"
-              checked={formData.billable}
-              onChange={handleInputChange}
-              className="w-4 h-4"
-            />
-            <label htmlFor="billable" className="text-sm font-bold">
-              Billable Resource
-            </label>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold mb-2">
+                Billable Hours
+              </label>
+              <input
+                type="number"
+                name="billable_hours"
+                value={formData.billable_hours}
+                onChange={handleInputChange}
+                className="form-input w-full"
+                placeholder="120"
+                step="0.5"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-2">
+                Available Hours
+              </label>
+              <input
+                type="number"
+                name="available_hours"
+                value={formData.available_hours}
+                onChange={handleInputChange}
+                className="form-input w-full"
+                placeholder="160"
+                step="0.5"
+              />
+            </div>
           </div>
         </div>
       </Modal>

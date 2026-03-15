@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
 import StatusBadge from '../components/StatusBadge'
+import ProjectSelector from '../components/ProjectSelector'
 import { statusReportsAPI } from '../utils/api'
 
 const StatusReports = () => {
@@ -13,15 +14,13 @@ const StatusReports = () => {
   const [modalLoading, setModalLoading] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
+    report_date: '',
     period: '',
-    project_name: '',
-    overall_status: 'ON_TRACK',
-    summary: '',
-    achievements: '',
-    risks: '',
-    issues: '',
+    executive_summary: '',
+    key_achievements: '',
+    risks_issues: '',
     next_steps: '',
-    prepared_by: '',
+    project_id: null,
   })
 
   useEffect(() => {
@@ -47,29 +46,25 @@ const StatusReports = () => {
       setEditingReport(report)
       setFormData({
         title: report.title,
+        report_date: report.report_date,
         period: report.period,
-        project_name: report.project_name,
-        overall_status: report.overall_status,
-        summary: report.summary,
-        achievements: report.achievements,
-        risks: report.risks,
-        issues: report.issues,
+        executive_summary: report.executive_summary,
+        key_achievements: report.key_achievements,
+        risks_issues: report.risks_issues,
         next_steps: report.next_steps,
-        prepared_by: report.prepared_by,
+        project_id: report.project_id,
       })
     } else {
       setEditingReport(null)
       setFormData({
         title: '',
+        report_date: '',
         period: '',
-        project_name: '',
-        overall_status: 'ON_TRACK',
-        summary: '',
-        achievements: '',
-        risks: '',
-        issues: '',
+        executive_summary: '',
+        key_achievements: '',
+        risks_issues: '',
         next_steps: '',
-        prepared_by: '',
+        project_id: null,
       })
     }
     setShowModal(true)
@@ -89,17 +84,21 @@ const StatusReports = () => {
   }
 
   const handleSubmit = async () => {
-    if (!formData.title || !formData.period) {
-      setError('Title and period are required')
+    if (!formData.title || !formData.report_date || !formData.period || !formData.project_id) {
+      setError('Title, report date, period, and project are required')
       return
     }
 
     try {
       setModalLoading(true)
+      const submitData = {
+        ...formData,
+        project_id: parseInt(formData.project_id),
+      }
       if (editingReport) {
-        await statusReportsAPI.update(editingReport.id, formData)
+        await statusReportsAPI.update(editingReport.id, submitData)
       } else {
-        await statusReportsAPI.create(formData)
+        await statusReportsAPI.create(submitData)
       }
       await fetchReports()
       handleCloseModal()
@@ -126,13 +125,7 @@ const StatusReports = () => {
   const tableColumns = [
     { key: 'title', label: 'Report Title' },
     { key: 'period', label: 'Period' },
-    { key: 'project_name', label: 'Project' },
-    {
-      key: 'overall_status',
-      label: 'Status',
-      render: (val) => <StatusBadge status={val} />,
-    },
-    { key: 'prepared_by', label: 'Prepared By' },
+    { key: 'report_date', label: 'Report Date' },
   ]
 
   if (loading) {
@@ -143,10 +136,14 @@ const StatusReports = () => {
     )
   }
 
-  const statusCounts = {
-    ON_TRACK: reports.filter((r) => r.overall_status === 'ON_TRACK').length,
-    AT_RISK: reports.filter((r) => r.overall_status === 'AT_RISK').length,
-    OFF_TRACK: reports.filter((r) => r.overall_status === 'OFF_TRACK').length,
+  const reportCounts = {
+    TOTAL: reports.length,
+    THIS_WEEK: reports.filter((r) => {
+      const reportDate = new Date(r.report_date)
+      const today = new Date()
+      const oneWeekAgo = new Date(today.setDate(today.getDate() - 7))
+      return reportDate >= oneWeekAgo
+    }).length,
   }
 
   return (
@@ -167,26 +164,14 @@ const StatusReports = () => {
       )}
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bloomberg-card p-4">
           <div className="text-xs text-muted mb-2">TOTAL REPORTS</div>
-          <div className="text-2xl font-bold text-akb-green">{reports.length}</div>
+          <div className="text-2xl font-bold text-akb-green">{reportCounts.TOTAL}</div>
         </div>
         <div className="bloomberg-card p-4">
-          <div className="text-xs text-muted mb-2">ON TRACK</div>
-          <div className="text-2xl font-bold text-akb-green">
-            {statusCounts.ON_TRACK}
-          </div>
-        </div>
-        <div className="bloomberg-card p-4">
-          <div className="text-xs text-muted mb-2">AT RISK</div>
-          <div className="text-2xl font-bold text-akb-amber">{statusCounts.AT_RISK}</div>
-        </div>
-        <div className="bloomberg-card p-4">
-          <div className="text-xs text-muted mb-2">OFF TRACK</div>
-          <div className="text-2xl font-bold text-akb-red">
-            {statusCounts.OFF_TRACK}
-          </div>
+          <div className="text-xs text-muted mb-2">THIS WEEK</div>
+          <div className="text-2xl font-bold text-akb-amber">{reportCounts.THIS_WEEK}</div>
         </div>
       </div>
 
@@ -208,11 +193,10 @@ const StatusReports = () => {
                 <div className="flex-1">
                   <div className="font-bold">{report.title}</div>
                   <div className="text-xs text-muted">
-                    {report.project_name} • {report.period}
+                    {report.period} • {report.report_date}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <StatusBadge status={report.overall_status} />
                   <div className="flex gap-1">
                     <button
                       onClick={(e) => {
@@ -278,6 +262,19 @@ const StatusReports = () => {
               />
             </div>
             <div>
+              <label className="block text-sm font-bold mb-2">Report Date *</label>
+              <input
+                type="date"
+                name="report_date"
+                value={formData.report_date}
+                onChange={handleInputChange}
+                className="form-input w-full"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <label className="block text-sm font-bold mb-2">Period *</label>
               <input
                 type="text"
@@ -288,34 +285,17 @@ const StatusReports = () => {
                 placeholder="e.g., 2026-03-08 to 2026-03-14"
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold mb-2">Project Name</label>
-              <input
-                type="text"
-                name="project_name"
-                value={formData.project_name}
-                onChange={handleInputChange}
-                className="form-input w-full"
-                placeholder="Project name"
+              <label className="block text-sm font-bold mb-2">Project *</label>
+              <ProjectSelector
+                value={formData.project_id}
+                onChange={(projectId) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    project_id: projectId,
+                  }))
+                }
               />
-            </div>
-            <div>
-              <label className="block text-sm font-bold mb-2">
-                Overall Status
-              </label>
-              <select
-                name="overall_status"
-                value={formData.overall_status}
-                onChange={handleInputChange}
-                className="form-select w-full"
-              >
-                <option value="ON_TRACK">On Track</option>
-                <option value="AT_RISK">At Risk</option>
-                <option value="OFF_TRACK">Off Track</option>
-              </select>
             </div>
           </div>
 
@@ -324,8 +304,8 @@ const StatusReports = () => {
               Executive Summary
             </label>
             <textarea
-              name="summary"
-              value={formData.summary}
+              name="executive_summary"
+              value={formData.executive_summary}
               onChange={handleInputChange}
               className="form-textarea w-full"
               rows="3"
@@ -334,10 +314,10 @@ const StatusReports = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-bold mb-2">Achievements</label>
+            <label className="block text-sm font-bold mb-2">Key Achievements</label>
             <textarea
-              name="achievements"
-              value={formData.achievements}
+              name="key_achievements"
+              value={formData.key_achievements}
               onChange={handleInputChange}
               className="form-textarea w-full"
               rows="2"
@@ -345,29 +325,16 @@ const StatusReports = () => {
             ></textarea>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-bold mb-2">Risks</label>
-              <textarea
-                name="risks"
-                value={formData.risks}
-                onChange={handleInputChange}
-                className="form-textarea w-full"
-                rows="2"
-                placeholder="Identified risks..."
-              ></textarea>
-            </div>
-            <div>
-              <label className="block text-sm font-bold mb-2">Issues</label>
-              <textarea
-                name="issues"
-                value={formData.issues}
-                onChange={handleInputChange}
-                className="form-textarea w-full"
-                rows="2"
-                placeholder="Current blockers..."
-              ></textarea>
-            </div>
+          <div>
+            <label className="block text-sm font-bold mb-2">Risks & Issues</label>
+            <textarea
+              name="risks_issues"
+              value={formData.risks_issues}
+              onChange={handleInputChange}
+              className="form-textarea w-full"
+              rows="3"
+              placeholder="Identified risks and current blockers..."
+            ></textarea>
           </div>
 
           <div>
@@ -380,18 +347,6 @@ const StatusReports = () => {
               rows="2"
               placeholder="Planned actions for next period..."
             ></textarea>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold mb-2">Prepared By</label>
-            <input
-              type="text"
-              name="prepared_by"
-              value={formData.prepared_by}
-              onChange={handleInputChange}
-              className="form-input w-full"
-              placeholder="Report author"
-            />
           </div>
         </div>
       </Modal>

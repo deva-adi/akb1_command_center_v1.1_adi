@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
 import StatusBadge from '../components/StatusBadge'
+import ProjectSelector from '../components/ProjectSelector'
 import { releasesAPI } from '../utils/api'
 
 const Releases = () => {
@@ -15,11 +16,10 @@ const Releases = () => {
     version: '',
     name: '',
     status: 'PLANNED',
-    planned_date: '',
-    actual_date: '',
-    description: '',
-    features: '',
-    release_manager: '',
+    release_date: '',
+    environment: 'DEV',
+    checklist_items: {},
+    project_id: null,
   })
 
   useEffect(() => {
@@ -47,11 +47,10 @@ const Releases = () => {
         version: release.version,
         name: release.name,
         status: release.status,
-        planned_date: release.planned_date,
-        actual_date: release.actual_date,
-        description: release.description,
-        features: release.features,
-        release_manager: release.release_manager,
+        release_date: release.release_date,
+        environment: release.environment,
+        checklist_items: release.checklist_items || {},
+        project_id: release.project_id,
       })
     } else {
       setEditingRelease(null)
@@ -59,11 +58,10 @@ const Releases = () => {
         version: '',
         name: '',
         status: 'PLANNED',
-        planned_date: '',
-        actual_date: '',
-        description: '',
-        features: '',
-        release_manager: '',
+        release_date: '',
+        environment: 'DEV',
+        checklist_items: {},
+        project_id: null,
       })
     }
     setShowModal(true)
@@ -83,17 +81,21 @@ const Releases = () => {
   }
 
   const handleSubmit = async () => {
-    if (!formData.version || !formData.name) {
-      setError('Version and name are required')
+    if (!formData.version || !formData.name || !formData.release_date || !formData.project_id) {
+      setError('Version, name, release date, and project are required')
       return
     }
 
     try {
       setModalLoading(true)
+      const submitData = {
+        ...formData,
+        project_id: parseInt(formData.project_id),
+      }
       if (editingRelease) {
-        await releasesAPI.update(editingRelease.id, formData)
+        await releasesAPI.update(editingRelease.id, submitData)
       } else {
-        await releasesAPI.create(formData)
+        await releasesAPI.create(submitData)
       }
       await fetchReleases()
       handleCloseModal()
@@ -125,9 +127,8 @@ const Releases = () => {
       label: 'Status',
       render: (val) => <StatusBadge status={val} />,
     },
-    { key: 'planned_date', label: 'Planned Date' },
-    { key: 'actual_date', label: 'Actual Date' },
-    { key: 'release_manager', label: 'Manager' },
+    { key: 'release_date', label: 'Release Date' },
+    { key: 'environment', label: 'Environment' },
   ]
 
   if (loading) {
@@ -141,8 +142,8 @@ const Releases = () => {
   const statusCounts = {
     PLANNED: releases.filter((r) => r.status === 'PLANNED').length,
     IN_PROGRESS: releases.filter((r) => r.status === 'IN_PROGRESS').length,
-    COMPLETED: releases.filter((r) => r.status === 'COMPLETED').length,
-    CANCELLED: releases.filter((r) => r.status === 'CANCELLED').length,
+    READY: releases.filter((r) => r.status === 'READY').length,
+    DEPLOYED: releases.filter((r) => r.status === 'DEPLOYED').length,
   }
 
   return (
@@ -179,14 +180,14 @@ const Releases = () => {
           </div>
         </div>
         <div className="bloomberg-card p-4">
-          <div className="text-xs text-muted mb-2">COMPLETED</div>
+          <div className="text-xs text-muted mb-2">READY</div>
           <div className="text-2xl font-bold text-akb-green">
-            {statusCounts.COMPLETED}
+            {statusCounts.READY}
           </div>
         </div>
         <div className="bloomberg-card p-4">
-          <div className="text-xs text-muted mb-2">CANCELLED</div>
-          <div className="text-2xl font-bold text-akb-red">{statusCounts.CANCELLED}</div>
+          <div className="text-xs text-muted mb-2">DEPLOYED</div>
+          <div className="text-2xl font-bold text-akb-green">{statusCounts.DEPLOYED}</div>
         </div>
       </div>
 
@@ -197,7 +198,7 @@ const Releases = () => {
         </h3>
         <div className="space-y-3">
           {releases
-            .sort((a, b) => new Date(b.planned_date) - new Date(a.planned_date))
+            .sort((a, b) => new Date(b.release_date) - new Date(a.release_date))
             .map((release) => (
               <div
                 key={release.id}
@@ -207,8 +208,7 @@ const Releases = () => {
                 <div className="flex-1">
                   <div className="font-bold">{release.version} - {release.name}</div>
                   <div className="text-xs text-muted">
-                    Planned: {release.planned_date}
-                    {release.actual_date && ` | Actual: ${release.actual_date}`}
+                    {release.release_date} | {release.environment}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -288,30 +288,6 @@ const Releases = () => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-bold mb-2">Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              className="form-textarea w-full"
-              rows="2"
-              placeholder="Release description..."
-            ></textarea>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold mb-2">Key Features</label>
-            <textarea
-              name="features"
-              value={formData.features}
-              onChange={handleInputChange}
-              className="form-textarea w-full"
-              rows="3"
-              placeholder="Features included (one per line)..."
-            ></textarea>
-          </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold mb-2">Status</label>
@@ -323,50 +299,77 @@ const Releases = () => {
               >
                 <option value="PLANNED">Planned</option>
                 <option value="IN_PROGRESS">In Progress</option>
-                <option value="COMPLETED">Completed</option>
-                <option value="CANCELLED">Cancelled</option>
+                <option value="READY">Ready</option>
+                <option value="DEPLOYED">Deployed</option>
+                <option value="ROLLED_BACK">Rolled Back</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-bold mb-2">
-                Release Manager
-              </label>
-              <input
-                type="text"
-                name="release_manager"
-                value={formData.release_manager}
+              <label className="block text-sm font-bold mb-2">Environment</label>
+              <select
+                name="environment"
+                value={formData.environment}
                 onChange={handleInputChange}
-                className="form-input w-full"
-                placeholder="Manager name"
-              />
+                className="form-select w-full"
+              >
+                <option value="DEV">DEV</option>
+                <option value="QA">QA</option>
+                <option value="STAGING">STAGING</option>
+                <option value="PRODUCTION">PRODUCTION</option>
+              </select>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold mb-2">
-                Planned Date
+                Release Date *
               </label>
               <input
                 type="date"
-                name="planned_date"
-                value={formData.planned_date}
+                name="release_date"
+                value={formData.release_date}
                 onChange={handleInputChange}
                 className="form-input w-full"
               />
             </div>
             <div>
-              <label className="block text-sm font-bold mb-2">
-                Actual Date
-              </label>
-              <input
-                type="date"
-                name="actual_date"
-                value={formData.actual_date}
-                onChange={handleInputChange}
-                className="form-input w-full"
+              <label className="block text-sm font-bold mb-2">Project *</label>
+              <ProjectSelector
+                value={formData.project_id}
+                onChange={(projectId) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    project_id: projectId,
+                  }))
+                }
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold mb-2">Checklist Items (JSON)</label>
+            <textarea
+              name="checklist_items"
+              value={JSON.stringify(formData.checklist_items, null, 2)}
+              onChange={(e) => {
+                try {
+                  const parsed = JSON.parse(e.target.value || '{}')
+                  setFormData((prev) => ({
+                    ...prev,
+                    checklist_items: parsed,
+                  }))
+                } catch (err) {
+                  // Keep the text as is if not valid JSON
+                  setFormData((prev) => ({
+                    ...prev,
+                  }))
+                }
+              }}
+              className="form-textarea w-full"
+              rows="3"
+              placeholder='{}'
+            ></textarea>
           </div>
         </div>
       </Modal>

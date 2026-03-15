@@ -12,6 +12,7 @@ import {
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
 import StatusBadge from '../components/StatusBadge'
+import ProjectSelector from '../components/ProjectSelector'
 import { sprintsAPI } from '../utils/api'
 
 const SprintPlanner = () => {
@@ -23,14 +24,16 @@ const SprintPlanner = () => {
   const [modalLoading, setModalLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
+    pi_number: '',
+    sprint_number: '',
     status: 'PLANNING',
     planned_velocity: '',
     actual_velocity: '',
-    capacity: '',
-    utilization: '',
+    capacity_hours: '',
+    team_size: '',
     start_date: '',
     end_date: '',
-    goals: '',
+    project_id: null,
   })
 
   useEffect(() => {
@@ -56,27 +59,31 @@ const SprintPlanner = () => {
       setEditingSprint(sprint)
       setFormData({
         name: sprint.name,
+        pi_number: sprint.pi_number,
+        sprint_number: sprint.sprint_number,
         status: sprint.status,
         planned_velocity: sprint.planned_velocity,
         actual_velocity: sprint.actual_velocity,
-        capacity: sprint.capacity,
-        utilization: sprint.utilization,
+        capacity_hours: sprint.capacity_hours,
+        team_size: sprint.team_size,
         start_date: sprint.start_date,
         end_date: sprint.end_date,
-        goals: sprint.goals,
+        project_id: sprint.project_id,
       })
     } else {
       setEditingSprint(null)
       setFormData({
         name: '',
+        pi_number: '',
+        sprint_number: '',
         status: 'PLANNING',
         planned_velocity: '',
         actual_velocity: '',
-        capacity: '',
-        utilization: '',
+        capacity_hours: '',
+        team_size: '',
         start_date: '',
         end_date: '',
-        goals: '',
+        project_id: null,
       })
     }
     setShowModal(true)
@@ -100,13 +107,27 @@ const SprintPlanner = () => {
       setError('Sprint name is required')
       return
     }
+    if (!formData.project_id) {
+      setError('Project is required')
+      return
+    }
 
     try {
       setModalLoading(true)
+      const submitData = {
+        ...formData,
+        pi_number: parseInt(formData.pi_number, 10),
+        sprint_number: parseInt(formData.sprint_number, 10),
+        planned_velocity: parseFloat(formData.planned_velocity) || 0,
+        actual_velocity: parseFloat(formData.actual_velocity) || 0,
+        capacity_hours: parseFloat(formData.capacity_hours) || 0,
+        team_size: parseInt(formData.team_size, 10),
+        project_id: parseInt(formData.project_id, 10),
+      }
       if (editingSprint) {
-        await sprintsAPI.update(editingSprint.id, formData)
+        await sprintsAPI.update(editingSprint.id, submitData)
       } else {
-        await sprintsAPI.create(formData)
+        await sprintsAPI.create(submitData)
       }
       await fetchSprints()
       handleCloseModal()
@@ -143,8 +164,8 @@ const SprintPlanner = () => {
     { key: 'status', label: 'Status', render: (val) => <StatusBadge status={val} /> },
     { key: 'planned_velocity', label: 'Planned Velocity' },
     { key: 'actual_velocity', label: 'Actual Velocity' },
-    { key: 'capacity', label: 'Capacity' },
-    { key: 'utilization', label: 'Utilization', render: (val) => `${val}%` },
+    { key: 'capacity_hours', label: 'Capacity (hrs)' },
+    { key: 'team_size', label: 'Team Size' },
     {
       key: 'start_date',
       label: 'Period',
@@ -160,10 +181,21 @@ const SprintPlanner = () => {
     )
   }
 
-  const totalCapacity = sprints.reduce((sum, s) => sum + (s.capacity || 0), 0)
+  const totalCapacity = sprints.reduce((sum, s) => sum + (s.capacity_hours || 0), 0)
   const avgUtilization =
     sprints.length > 0
-      ? (sprints.reduce((sum, s) => sum + (s.utilization || 0), 0) / sprints.length).toFixed(1)
+      ? (
+          (sprints.reduce(
+            (sum, s) =>
+              sum +
+              (s.capacity_hours > 0
+                ? (s.actual_velocity / s.capacity_hours) * 100
+                : 0),
+            0
+          ) /
+            sprints.length) *
+          100
+        ).toFixed(1)
       : 0
 
   return (
@@ -270,6 +302,16 @@ const SprintPlanner = () => {
       >
         <div className="space-y-4">
           <div>
+            <label className="block text-sm font-bold mb-2">Project *</label>
+            <ProjectSelector
+              value={formData.project_id}
+              onChange={(projectId) =>
+                setFormData((prev) => ({ ...prev, project_id: projectId }))
+              }
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-bold mb-2">Sprint Name *</label>
             <input
               type="text"
@@ -279,6 +321,31 @@ const SprintPlanner = () => {
               className="form-input w-full"
               placeholder="e.g., Sprint 23"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold mb-2">PI Number</label>
+              <input
+                type="number"
+                name="pi_number"
+                value={formData.pi_number}
+                onChange={handleInputChange}
+                className="form-input w-full"
+                placeholder="1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-2">Sprint Number</label>
+              <input
+                type="number"
+                name="sprint_number"
+                value={formData.sprint_number}
+                onChange={handleInputChange}
+                className="form-input w-full"
+                placeholder="1"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -293,24 +360,37 @@ const SprintPlanner = () => {
                 <option value="PLANNING">Planning</option>
                 <option value="IN_PROGRESS">In Progress</option>
                 <option value="REVIEW">Review</option>
-                <option value="COMPLETED">Completed</option>
+                <option value="CLOSED">Closed</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-bold mb-2">Capacity</label>
+              <label className="block text-sm font-bold mb-2">Team Size</label>
               <input
                 type="number"
-                name="capacity"
-                value={formData.capacity}
+                name="team_size"
+                value={formData.team_size}
                 onChange={handleInputChange}
                 className="form-input w-full"
-                placeholder="40"
-                step="0.5"
+                placeholder="6"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold mb-2">
+                Capacity Hours
+              </label>
+              <input
+                type="number"
+                name="capacity_hours"
+                value={formData.capacity_hours}
+                onChange={handleInputChange}
+                className="form-input w-full"
+                placeholder="240"
+                step="0.5"
+              />
+            </div>
             <div>
               <label className="block text-sm font-bold mb-2">
                 Planned Velocity
@@ -325,6 +405,9 @@ const SprintPlanner = () => {
                 step="0.5"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold mb-2">
                 Actual Velocity
@@ -339,22 +422,6 @@ const SprintPlanner = () => {
                 step="0.5"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold mb-2">
-              Utilization (%)
-            </label>
-            <input
-              type="number"
-              name="utilization"
-              value={formData.utilization}
-              onChange={handleInputChange}
-              className="form-input w-full"
-              min="0"
-              max="100"
-              placeholder="85"
-            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -378,18 +445,6 @@ const SprintPlanner = () => {
                 className="form-input w-full"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold mb-2">Sprint Goals</label>
-            <textarea
-              name="goals"
-              value={formData.goals}
-              onChange={handleInputChange}
-              className="form-textarea w-full"
-              rows="3"
-              placeholder="Key objectives for this sprint..."
-            ></textarea>
           </div>
         </div>
       </Modal>

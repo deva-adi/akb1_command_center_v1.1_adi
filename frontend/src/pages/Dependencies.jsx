@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Modal from '../components/Modal'
 import DataTable from '../components/DataTable'
 import StatusBadge from '../components/StatusBadge'
+import ProjectSelector from '../components/ProjectSelector'
 import { dependenciesAPI } from '../utils/api'
 
 const Dependencies = () => {
@@ -13,13 +14,14 @@ const Dependencies = () => {
   const [modalLoading, setModalLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState('all')
   const [formData, setFormData] = useState({
+    title: '',
     source_team: '',
     target_team: '',
     description: '',
-    status: 'PENDING',
+    status: 'OPEN',
     priority: 'MEDIUM',
-    target_date: '',
-    owner: '',
+    due_date: '',
+    project_id: null,
   })
 
   useEffect(() => {
@@ -44,24 +46,26 @@ const Dependencies = () => {
     if (dep) {
       setEditingDependency(dep)
       setFormData({
+        title: dep.title,
         source_team: dep.source_team,
         target_team: dep.target_team,
         description: dep.description,
         status: dep.status,
         priority: dep.priority,
-        target_date: dep.target_date,
-        owner: dep.owner,
+        due_date: dep.due_date,
+        project_id: dep.project_id,
       })
     } else {
       setEditingDependency(null)
       setFormData({
+        title: '',
         source_team: '',
         target_team: '',
         description: '',
-        status: 'PENDING',
+        status: 'OPEN',
         priority: 'MEDIUM',
-        target_date: '',
-        owner: '',
+        due_date: '',
+        project_id: null,
       })
     }
     setShowModal(true)
@@ -81,17 +85,21 @@ const Dependencies = () => {
   }
 
   const handleSubmit = async () => {
-    if (!formData.source_team || !formData.target_team) {
-      setError('Source and target teams are required')
+    if (!formData.title || !formData.source_team || !formData.target_team || !formData.project_id) {
+      setError('Title, source team, target team, and project are required')
       return
     }
 
     try {
       setModalLoading(true)
+      const submitData = {
+        ...formData,
+        project_id: parseInt(formData.project_id),
+      }
       if (editingDependency) {
-        await dependenciesAPI.update(editingDependency.id, formData)
+        await dependenciesAPI.update(editingDependency.id, submitData)
       } else {
-        await dependenciesAPI.create(formData)
+        await dependenciesAPI.create(submitData)
       }
       await fetchDependencies()
       handleCloseModal()
@@ -121,9 +129,9 @@ const Dependencies = () => {
       : dependencies.filter((d) => d.status === statusFilter)
 
   const tableColumns = [
+    { key: 'title', label: 'Title' },
     { key: 'source_team', label: 'Source Team' },
     { key: 'target_team', label: 'Target Team' },
-    { key: 'description', label: 'Description' },
     {
       key: 'priority',
       label: 'Priority',
@@ -134,8 +142,7 @@ const Dependencies = () => {
       label: 'Status',
       render: (val) => <StatusBadge status={val} />,
     },
-    { key: 'target_date', label: 'Target Date' },
-    { key: 'owner', label: 'Owner' },
+    { key: 'due_date', label: 'Due Date' },
   ]
 
   if (loading) {
@@ -147,7 +154,7 @@ const Dependencies = () => {
   }
 
   const statusCounts = {
-    PENDING: dependencies.filter((d) => d.status === 'PENDING').length,
+    OPEN: dependencies.filter((d) => d.status === 'OPEN').length,
     IN_PROGRESS: dependencies.filter((d) => d.status === 'IN_PROGRESS').length,
     RESOLVED: dependencies.filter((d) => d.status === 'RESOLVED').length,
     BLOCKED: dependencies.filter((d) => d.status === 'BLOCKED').length,
@@ -177,8 +184,8 @@ const Dependencies = () => {
           <div className="text-2xl font-bold text-akb-green">{dependencies.length}</div>
         </div>
         <div className="bloomberg-card p-4">
-          <div className="text-xs text-muted mb-2">PENDING</div>
-          <div className="text-2xl font-bold text-akb-amber">{statusCounts.PENDING}</div>
+          <div className="text-xs text-muted mb-2">OPEN</div>
+          <div className="text-2xl font-bold text-akb-amber">{statusCounts.OPEN}</div>
         </div>
         <div className="bloomberg-card p-4">
           <div className="text-xs text-muted mb-2">IN PROGRESS</div>
@@ -210,7 +217,7 @@ const Dependencies = () => {
         >
           All
         </button>
-        {['PENDING', 'IN_PROGRESS', 'BLOCKED', 'RESOLVED'].map((status) => (
+        {['OPEN', 'IN_PROGRESS', 'BLOCKED', 'RESOLVED'].map((status) => (
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
@@ -249,6 +256,18 @@ const Dependencies = () => {
         loading={modalLoading}
       >
         <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold mb-2">Title *</label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
+              className="form-input w-full"
+              placeholder="e.g., API Migration Dependency"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold mb-2">Source Team *</label>
@@ -295,7 +314,7 @@ const Dependencies = () => {
                 onChange={handleInputChange}
                 className="form-select w-full"
               >
-                <option value="PENDING">Pending</option>
+                <option value="OPEN">Open</option>
                 <option value="IN_PROGRESS">In Progress</option>
                 <option value="BLOCKED">Blocked</option>
                 <option value="RESOLVED">Resolved</option>
@@ -319,24 +338,25 @@ const Dependencies = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold mb-2">Target Date</label>
+              <label className="block text-sm font-bold mb-2">Due Date</label>
               <input
                 type="date"
-                name="target_date"
-                value={formData.target_date}
+                name="due_date"
+                value={formData.due_date}
                 onChange={handleInputChange}
                 className="form-input w-full"
               />
             </div>
             <div>
-              <label className="block text-sm font-bold mb-2">Owner</label>
-              <input
-                type="text"
-                name="owner"
-                value={formData.owner}
-                onChange={handleInputChange}
-                className="form-input w-full"
-                placeholder="Dependency owner"
+              <label className="block text-sm font-bold mb-2">Project *</label>
+              <ProjectSelector
+                value={formData.project_id}
+                onChange={(projectId) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    project_id: projectId,
+                  }))
+                }
               />
             </div>
           </div>

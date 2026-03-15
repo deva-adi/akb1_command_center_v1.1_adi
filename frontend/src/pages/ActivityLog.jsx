@@ -49,7 +49,7 @@ const ActivityLog = () => {
             (entityFilter === 'all' || a.entity_type === entityFilter) &&
             (actionFilter === 'all' || a.action === actionFilter) &&
             (searchTerm === '' ||
-              a.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              a.entity_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
               a.entity_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
               a.action?.toLowerCase().includes(searchTerm.toLowerCase()))
         )
@@ -62,8 +62,21 @@ const ActivityLog = () => {
     },
     { key: 'entity_type', label: 'Entity' },
     { key: 'action', label: 'Action' },
-    { key: 'description', label: 'Details' },
-    { key: 'user', label: 'User' },
+    { key: 'entity_name', label: 'Entity Name' },
+    {
+      key: 'details',
+      label: 'Changes',
+      render: (val) => {
+        if (!val || typeof val !== 'object') return '—'
+        const keys = Object.keys(val)
+        return keys.length > 0 ? keys.join(', ') : '—'
+      },
+    },
+    {
+      key: 'user_ip',
+      label: 'User IP',
+      render: (val) => val || '—',
+    },
   ]
 
   if (loading) {
@@ -127,7 +140,7 @@ const ActivityLog = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="form-input w-full"
-            placeholder="Search by description, entity, or action..."
+            placeholder="Search by entity name, type, or action..."
           />
         </div>
 
@@ -180,7 +193,8 @@ const ActivityLog = () => {
                 CREATE: '#00c853',
                 UPDATE: '#ff9100',
                 DELETE: '#ff1744',
-                READ: '#2196F3',
+                VIEW: '#2196F3',
+                CONFIG_CHANGE: '#9c27b0',
               }
               const actionColor = actionColors[activity.action] || '#999'
 
@@ -194,7 +208,7 @@ const ActivityLog = () => {
                     {new Date(activity.timestamp).toLocaleString()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span
                         className="text-xs font-bold px-2 py-0.5 rounded"
                         style={{
@@ -207,15 +221,21 @@ const ActivityLog = () => {
                       <span className="text-sm font-bold">
                         {activity.entity_type}
                       </span>
-                      {activity.user && (
+                      {activity.entity_name && (
+                        <span className="text-sm text-akb-green">
+                          "{activity.entity_name}"
+                        </span>
+                      )}
+                      {activity.user_ip && (
                         <span className="text-xs text-muted">
-                          by {activity.user}
+                          from {activity.user_ip}
                         </span>
                       )}
                     </div>
-                    {activity.description && (
-                      <div className="text-sm text-muted break-words">
-                        {activity.description}
+                    {activity.details && typeof activity.details === 'object' && Object.keys(activity.details).length > 0 && (
+                      <div className="text-xs text-muted break-words mt-1">
+                        <span className="text-muted">Changed: </span>
+                        {Object.keys(activity.details).join(', ')}
                       </div>
                     )}
                   </div>
