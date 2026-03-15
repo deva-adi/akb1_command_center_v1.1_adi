@@ -97,13 +97,22 @@ const Resources = () => {
 
     try {
       setModalLoading(true)
+      const projectId = parseInt(formData.project_id, 10)
+      if (isNaN(projectId) || projectId <= 0) {
+        setError('Please select a valid project')
+        setModalLoading(false)
+        return
+      }
+      const billableHrs = parseFloat(formData.billable_hours) || 0
+      const availableHrs = parseFloat(formData.available_hours) || 160
+      const calcUtilization = availableHrs > 0 ? (billableHrs / availableHrs * 100) : 0
       const submitData = {
         ...formData,
         allocation_percent: parseFloat(formData.allocation_percent) || 0,
-        utilization: parseFloat(formData.utilization) || 0,
-        billable_hours: parseFloat(formData.billable_hours) || 0,
-        available_hours: parseFloat(formData.available_hours) || 0,
-        project_id: parseInt(formData.project_id, 10),
+        utilization: parseFloat(formData.utilization) || parseFloat(calcUtilization.toFixed(2)),
+        billable_hours: billableHrs,
+        available_hours: availableHrs,
+        project_id: projectId,
       }
       if (editingResource) {
         await resourcesAPI.update(editingResource.id, submitData)

@@ -98,11 +98,17 @@ const RiskMatrix = () => {
 
     try {
       setModalLoading(true)
+      const projectId = parseInt(formData.project_id, 10)
+      if (isNaN(projectId) || projectId <= 0) {
+        setError('Please select a valid project')
+        setModalLoading(false)
+        return
+      }
       const submitData = {
         ...formData,
-        probability: parseInt(formData.probability, 10),
-        impact: parseInt(formData.impact, 10),
-        project_id: parseInt(formData.project_id, 10),
+        probability: parseInt(formData.probability, 10) || 1,
+        impact: parseInt(formData.impact, 10) || 1,
+        project_id: projectId,
       }
       if (editingRisk) {
         await risksAPI.update(editingRisk.id, submitData)

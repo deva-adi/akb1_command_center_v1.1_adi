@@ -114,15 +114,21 @@ const SprintPlanner = () => {
 
     try {
       setModalLoading(true)
+      const projectId = parseInt(formData.project_id, 10)
+      if (isNaN(projectId) || projectId <= 0) {
+        setError('Please select a valid project')
+        setModalLoading(false)
+        return
+      }
       const submitData = {
         ...formData,
-        pi_number: parseInt(formData.pi_number, 10),
-        sprint_number: parseInt(formData.sprint_number, 10),
+        pi_number: parseInt(formData.pi_number, 10) || 1,
+        sprint_number: parseInt(formData.sprint_number, 10) || 1,
         planned_velocity: parseFloat(formData.planned_velocity) || 0,
         actual_velocity: parseFloat(formData.actual_velocity) || 0,
         capacity_hours: parseFloat(formData.capacity_hours) || 0,
-        team_size: parseInt(formData.team_size, 10),
-        project_id: parseInt(formData.project_id, 10),
+        team_size: parseInt(formData.team_size, 10) || 1,
+        project_id: projectId,
       }
       if (editingSprint) {
         await sprintsAPI.update(editingSprint.id, submitData)

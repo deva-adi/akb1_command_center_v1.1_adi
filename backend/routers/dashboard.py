@@ -96,12 +96,14 @@ def get_dashboard_metrics(db: Session = Depends(get_db)):
     spent_budget = sum([p.budget_actual for p in projects])
     avg_health = sum([p.health_score for p in projects]) / len(projects) if projects else 0
 
-    # Delivery metrics
+    # Delivery metrics — include CLOSED sprints for efficiency, all sprints with data for velocity
     sprints = db.query(models.Sprint).all()
     completed_sprints = len([s for s in sprints if s.status == models.SprintStatus.CLOSED])
     active_sprints = len([s for s in sprints if s.status == models.SprintStatus.IN_PROGRESS])
-    planned_velocity = sum([s.planned_velocity for s in sprints if s.status == models.SprintStatus.CLOSED])
-    actual_velocity = sum([s.actual_velocity for s in sprints if s.status == models.SprintStatus.CLOSED])
+    # Include all sprints that have velocity data (CLOSED + IN_PROGRESS with actual work)
+    sprints_with_data = [s for s in sprints if s.status in (models.SprintStatus.CLOSED, models.SprintStatus.IN_PROGRESS)]
+    planned_velocity = sum([s.planned_velocity for s in sprints_with_data if s.planned_velocity])
+    actual_velocity = sum([s.actual_velocity for s in sprints_with_data if s.actual_velocity])
 
     velocity_efficiency = (actual_velocity / planned_velocity * 100) if planned_velocity > 0 else 0
 

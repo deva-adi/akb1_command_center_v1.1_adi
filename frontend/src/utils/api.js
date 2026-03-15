@@ -26,7 +26,21 @@ api.interceptors.response.use(
     return response.data
   },
   (error) => {
-    console.error('[API Error]', error.response?.status, error.config?.url)
+    console.error('[API Error]', error.response?.status, error.config?.url, error.response?.data)
+    // Extract meaningful error message from FastAPI validation errors
+    if (error.response?.data?.detail) {
+      const detail = error.response.data.detail
+      if (Array.isArray(detail)) {
+        // Pydantic validation errors: [{loc: [...], msg: "...", type: "..."}]
+        const messages = detail.map(d => {
+          const field = d.loc ? d.loc.filter(l => l !== 'body').join('.') : 'unknown'
+          return `${field}: ${d.msg}`
+        })
+        error.response.data.message = messages.join('; ')
+      } else if (typeof detail === 'string') {
+        error.response.data.message = detail
+      }
+    }
     return Promise.reject(error)
   }
 )

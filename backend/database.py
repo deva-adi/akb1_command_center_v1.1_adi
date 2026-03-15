@@ -6,9 +6,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Ensure /data directory exists
-DATA_DIR = "/data"
+# Ensure data directory exists - use environment variable for Railway persistent volume
+# Railway mounts persistent volumes at a configurable path (e.g., /data)
+DATA_DIR = os.environ.get("DATA_DIR", "/data")
 os.makedirs(DATA_DIR, exist_ok=True)
+logger.info(f"Database directory: {DATA_DIR}")
 
 # Database URL
 DATABASE_URL = f"sqlite:///{DATA_DIR}/akb1.db"

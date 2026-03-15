@@ -123,14 +123,21 @@ const Estimations = () => {
 
     try {
       setModalLoading(true)
+      const projectId = parseInt(formData.project_id)
+      if (isNaN(projectId) || projectId <= 0) {
+        setError('Please select a valid project')
+        setModalLoading(false)
+        return
+      }
+      const confidence = parseFloat(formData.confidence) || 0
       const submitData = {
         ...formData,
-        project_id: parseInt(formData.project_id),
+        project_id: projectId,
         optimistic: parseFloat(formData.optimistic) || 0,
         most_likely: parseFloat(formData.most_likely) || 0,
         pessimistic: parseFloat(formData.pessimistic) || 0,
         estimate_result: parseFloat(formData.estimate_result) || 0,
-        confidence: parseFloat(formData.confidence) || 0,
+        confidence: confidence > 1 ? confidence / 100 : confidence,
       }
       if (editingEstimation) {
         await estimationsAPI.update(editingEstimation.id, submitData)

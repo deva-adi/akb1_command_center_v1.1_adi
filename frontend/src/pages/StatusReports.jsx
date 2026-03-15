@@ -91,9 +91,15 @@ const StatusReports = () => {
 
     try {
       setModalLoading(true)
+      const projectId = parseInt(formData.project_id)
+      if (isNaN(projectId) || projectId <= 0) {
+        setError('Please select a valid project')
+        setModalLoading(false)
+        return
+      }
       const submitData = {
         ...formData,
-        project_id: parseInt(formData.project_id),
+        project_id: projectId,
       }
       if (editingReport) {
         await statusReportsAPI.update(editingReport.id, submitData)
