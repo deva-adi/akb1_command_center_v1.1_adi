@@ -41,12 +41,15 @@ RUN mkdir -p /data && chmod 755 /data
 # Expose port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/api/health || exit 1
+# Health check (Railway uses its own healthcheck, this is for Docker)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-8000}/api/health || exit 1
 
 # Set default port
 ENV PORT=8000
 
+# Set working directory to backend for proper imports
+WORKDIR /app/backend
+
 # Start command (shell form to support env var expansion)
-CMD uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+CMD uvicorn main:app --host 0.0.0.0 --port $PORT
