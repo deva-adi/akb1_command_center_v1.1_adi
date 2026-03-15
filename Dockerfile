@@ -36,11 +36,8 @@ COPY backend ./backend
 COPY --from=frontend-builder /app/frontend/dist ./frontend_dist
 
 # Create persistent data directory for SQLite
-# Railway mounts persistent volumes to this path - configure in Railway dashboard
+# Railway uses Railway Volumes (configured in dashboard) mounted at /data
 RUN mkdir -p /data && chmod 755 /data
-
-# Declare volume for SQLite persistence across deploys
-VOLUME /data
 
 # Environment variable for data directory (overridable via Railway env vars)
 ENV DATA_DIR=/data
